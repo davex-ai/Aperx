@@ -122,7 +122,7 @@ public class AuthService {
                 .token(token)
                 .email(adminUser.getEmail())
                 .role(adminUser.getRole().name())
-                .companySlug(company().getSlug())//Method call expected
+                .companySlug(company.getSlug())
                 .mustCompleteOnboarding(false)
                 .employeeId(adminEmployee.getId())
                 .fullName(request.getAdminFirstName() + " " + request.getAdminLastName())

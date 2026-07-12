@@ -292,7 +292,7 @@ public class RecruitmentService {
                 .candidateEmail(app.getCandidateEmail())
                 .candidatePhone(app.getCandidatePhone())
                 .resumeFileName(app.getResumeFileName())
-                .resumePreviewUrl("/api/jobs/applications/" + app.getId() + "/resume-preview")
+                .resumePreviewUrl("/jobs/applications/" + app.getId() + "/resume-preview")
                 .whyJoin(app.getWhyJoin())
                 .availability(app.getAvailability())
                 .yearsOfExperience(app.getYearsOfExperience())
