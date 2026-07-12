@@ -1,8 +1,4 @@
-target/
-*.class
-*.log
+node_modules/
+.env 
 .idea/
-*.iml
-.vscode/
-storage/
-.env
+.dist/
