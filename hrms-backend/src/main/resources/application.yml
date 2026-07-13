@@ -17,8 +17,8 @@ spring:
     name: hrms-backend
 
   datasource:
-    url: jdbc:postgresql://db.aortmmbwsmvejwpgjtre.supabase.co:5432/postgres
-    username: postgres
+    url: jdbc:postgresql://aws-0-eu-west-3.pooler.supabase.com:5432/postgres
+    username: postgres.aortmmbwsmvejwpgjtre
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
