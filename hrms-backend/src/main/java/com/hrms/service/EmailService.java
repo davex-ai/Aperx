@@ -1,30 +1,39 @@
 package com.hrms.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
-import jakarta.mail.internet.MimeMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private static final String BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 
-    @Value("${spring.mail.username}")
-    private String fromAddress;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${brevo.api-key}")
+    private String apiKey;
+
+    @Value("${brevo.sender-email}")
+    private String senderEmail;
+
+    @Value("${brevo.sender-name}")
+    private String senderName;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
     public void sendVerificationEmail(String toEmail, String firstName, String companyName, String companyEmail, String token) {
         String link = frontendUrl + "/onboarding/verify?token=" + token;
-
         String html = """
             <div style="font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #1f2933;">
                 <h2 style="color: #0f172a;">%s has invited you to join their team on AperX</h2>
@@ -40,7 +49,6 @@ public class EmailService {
                 <p style="font-size: 13px; color: #6b7280;">This link expires in 48 hours. If you weren't expecting this, you can safely ignore this email.</p>
             </div>
             """.formatted(companyName, firstName, companyName, companyEmail, link);
-
         send(toEmail, companyName + " has invited you to AperX", html);
     }
 
@@ -59,7 +67,6 @@ public class EmailService {
                         ? "<p><em>Reviewer comment:</em> " + comment + "</p>"
                         : ""
         );
-
         try {
             send(toEmail, "Your leave request has been " + decision.toLowerCase(), html);
         } catch (RuntimeException e) {
@@ -68,15 +75,27 @@ public class EmailService {
     }
 
     private void send(String toEmail, String subject, String html) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", apiKey);
+        headers.set("accept", "application/json");
+
+        Map<String, Object> sender = new HashMap<>();
+        sender.put("email", senderEmail);
+        sender.put("name", senderName);
+
+        Map<String, Object> recipient = new HashMap<>();
+        recipient.put("email", toEmail);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("sender", sender);
+        body.put("to", java.util.List.of(recipient));
+        body.put("subject", subject);
+        body.put("htmlContent", html);
+
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(html, true);
-            mailSender.send(message);
-        } catch (Exception e) {
+            restTemplate.postForEntity(BREVO_ENDPOINT, new HttpEntity<>(body, headers), String.class);
+        } catch (RestClientException e) {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
             throw new RuntimeException("Email delivery failed: " + e.getMessage(), e);
         }
