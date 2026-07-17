@@ -6,10 +6,11 @@ spring:
     name: hrms-backend
 
   datasource:
-    url: jdbc:postgresql://postgres.aortmmbwsmvejwpgjtre:${DB_PASSWORD}@aws-0-eu-west-3.pooler.supabase.com:6543/postgres?sslmode=require
+    url: jdbc:postgresql://@aws-0-eu-west-3.pooler.supabase.com:6543/postgres?sslmode=require
     username: ${DB_USERNAME:hrms_user}
     password: ${DB_PASSWORD:changeme}
     driver-class-name: org.postgresql.Driver
+    
 
   jpa:
     hibernate:
