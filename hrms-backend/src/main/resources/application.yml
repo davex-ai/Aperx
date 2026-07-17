@@ -19,6 +19,11 @@ spring:
   application:
     name: hrms-backend
 
+  brevo:
+  api-key: ${BREVO_API_KEY}
+  sender-email: ${BREVO_SENDER_EMAIL}
+  sender-name: ${BREVO_SENDER_NAME:AperX}
+
   datasource:
     url: postgresql://postgres.aortmmbwsmvejwpgjtre:${DB_PASSWORD}@aws-0-eu-west-3.pooler.supabase.com:5432/postgres
     username: ${DB_USERNAME:hrms_user}
