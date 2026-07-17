@@ -24,10 +24,10 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
-  brevo:
-    api-key: ${BREVO_API_KEY}
-    sender-email: ${BREVO_SENDER_EMAIL}
-    sender-name: ${BREVO_SENDER_NAME:AperX}
+brevo:
+  api-key: ${BREVO_API_KEY}
+  sender-email: ${BREVO_SENDER_EMAIL}
+  sender-name: ${BREVO_SENDER_NAME:AperX}
 
 app:
   jwt:
