@@ -4,14 +4,12 @@ server:
 spring:
   application:
     name: hrms-backend
-
   datasource:
-    url: jdbc:postgresql://aws-0-eu-west-3.pooler.supabase.com:6543/postgres?sslmode=require
-    username: ${DB_USERNAME:hrms_user}
+    url: jdbc:postgresql://aws-0-eu-west-3.pooler.supabase.com:5432/postgres
+    username: ${DB_USERNAME:postgres.aortmmbwsmvejwpgjtre}
     password: ${DB_PASSWORD:changeme}
     driver-class-name: org.postgresql.Driver
     
-
   jpa:
     hibernate:
       ddl-auto: update
