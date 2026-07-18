@@ -34,6 +34,7 @@ public class EmailService {
 
     public void sendVerificationEmail(String toEmail, String firstName, String companyName, String companyEmail, String token) {
         String link = frontendUrl + "/onboarding/verify?token=" + token;
+        log.info("[DEV FALLBACK] Invite link for {}: {}", toEmail, link);
         String html = """
             <div style="font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #1f2933;">
                 <h2 style="color: #0f172a;">%s has invited you to join their team on AperX</h2>
