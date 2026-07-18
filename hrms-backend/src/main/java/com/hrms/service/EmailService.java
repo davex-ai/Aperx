@@ -1,10 +1,14 @@
 package com.hrms.service;
 
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -13,10 +17,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
     private static final String BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
+
+    private final JavaMailSender mailSender;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -31,6 +38,9 @@ public class EmailService {
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
+
+    @Value("${spring.mail.username}")
+    private String gmailAddress;
 
     public void sendVerificationEmail(String toEmail, String firstName, String companyName, String companyEmail, String token) {
         String link = frontendUrl + "/onboarding/verify?token=" + token;
@@ -75,7 +85,27 @@ public class EmailService {
         }
     }
 
+    /**
+     * Tries Brevo (HTTPS API) first. If that fails for any reason, falls back
+     * to Gmail SMTP as a secondary channel. Only throws if BOTH fail.
+     */
     private void send(String toEmail, String subject, String html) {
+        try {
+            sendViaBrevo(toEmail, subject, html);
+            return;
+        } catch (RestClientException brevoError) {
+            log.error("Brevo send failed for {}: {}. Falling back to Gmail SMTP.", toEmail, brevoError.getMessage());
+        }
+
+        try {
+            sendViaGmailSmtp(toEmail, subject, html);
+        } catch (Exception smtpError) {
+            log.error("Gmail SMTP fallback also failed for {}: {}", toEmail, smtpError.getMessage());
+            throw new RuntimeException("Email delivery failed via both Brevo and Gmail SMTP: " + smtpError.getMessage(), smtpError);
+        }
+    }
+
+    private void sendViaBrevo(String toEmail, String subject, String html) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("api-key", apiKey);
@@ -94,11 +124,16 @@ public class EmailService {
         body.put("subject", subject);
         body.put("htmlContent", html);
 
-        try {
-            restTemplate.postForEntity(BREVO_ENDPOINT, new HttpEntity<>(body, headers), String.class);
-        } catch (RestClientException e) {
-            log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
-            throw new RuntimeException("Email delivery failed: " + e.getMessage(), e);
-        }
+        restTemplate.postForEntity(BREVO_ENDPOINT, new HttpEntity<>(body, headers), String.class);
+    }
+
+    private void sendViaGmailSmtp(String toEmail, String subject, String html) throws Exception {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(gmailAddress);
+        helper.setTo(toEmail);
+        helper.setSubject(subject);
+        helper.setText(html, true);
+        mailSender.send(message);
     }
 }
