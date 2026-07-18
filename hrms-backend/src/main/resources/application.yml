@@ -4,12 +4,28 @@ server:
 spring:
   application:
     name: hrms-backend
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_ADDRESS:}
+    password: ${GMAIL_APP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
   datasource:
-    url: jdbc:postgresql://aws-0-eu-west-3.pooler.supabase.com:5432/postgres
-    username: ${DB_USERNAME:postgres.aortmmbwsmvejwpgjtre}
-    password: ${DB_PASSWORD:changeme}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -23,6 +39,7 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+
 brevo:
   api-key: ${BREVO_API_KEY}
   sender-email: ${BREVO_SENDER_EMAIL}
@@ -32,13 +49,15 @@ app:
   jwt:
     secret: ${JWT_SECRET:this-is-a-development-only-secret-please-override-in-production-env}
     expiration-ms: 86400000
+
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://aperx.vercel.app}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:*}
+
 
   mail:
     from: ${MAIL_FROM:hr-noreply@company.com}
 
-  frontend-url: ${FRONTEND_URL:https://aperx.vercel.app}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
   storage:
     documents-dir: ${DOCUMENTS_DIR:./storage/documents}
